@@ -509,15 +509,14 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     });
     
-    const formData = {
-      date: new Date().toISOString(),
-      betType: betType,
-      numberOfLegs: selectedBets.length,
-      wagerAmount: betAmount.toFixed(2),
-      potentialWinnings: potentialWinnings,
-      totalOdds: odds,
-      betDetails: JSON.stringify(betDetails)
-    };
+    const formData = new FormData();
+    formData.append('date', new Date().toISOString());
+    formData.append('betType', betType);
+    formData.append('numberOfLegs', selectedBets.length);
+    formData.append('wagerAmount', betAmount.toFixed(2));
+    formData.append('potentialWinnings', potentialWinnings);
+    formData.append('totalOdds', odds);
+    formData.append('betDetails', JSON.stringify(betDetails));
     
     const placeBetButton = document.getElementById('place-bet-button');
     if (placeBetButton) {
@@ -530,13 +529,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('error-message').classList.add('hidden');
     
     const scriptURL = 'https://script.google.com/macros/s/AKfycbx3NjdIw6A907c582_RXZSsZdhS4tIJKTqDNkbNBFGlmgV3Nc5J3VHZdPJeYds-B1fa/exec';
-
+  
     fetch(scriptURL, {
       method: 'POST',
-      body: JSON.stringify(formData),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      body: formData
     })
     .then(response => {
       console.log('Success:', response);
@@ -561,4 +557,3 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('error-message').classList.remove('hidden');
     });
   }
-});
