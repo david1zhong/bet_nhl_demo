@@ -65,26 +65,36 @@ document.addEventListener('DOMContentLoaded', function() {
       button.addEventListener('click', function() {
         const dataGroup = button.dataset.group || '';
         const dataValue = button.dataset.value || '';
-  
-        // determine betType
+    
+        // 1) Determine betType exactly as you already do:
         let betType = '';
-        if (dataGroup.endsWith('_moneyline'))       betType = 'moneyline';
-        else if (dataGroup.endsWith('_total_over'))  betType = 'over';
-        else if (dataGroup.endsWith('_total_under')) betType = 'under';
+        if (dataGroup.includes('_moneyline'))       betType = 'moneyline';
+        else if (dataGroup.includes('_total_over'))  betType = 'over';
+        else if (dataGroup.includes('_total_under')) betType = 'under';
         else if (dataGroup.includes('_spread_'))     betType = 'spread';
-  
-        // choose the correct teamName
+    
+        // 2) Grab the row THIS button lives in:
+        const thisRow = button.closest('.team-row');
+    
+        // 3) If it's moneyline or spread, the teamName is whatever that row says:
         let teamName;
         if (betType === 'moneyline' || betType === 'spread') {
-          // moneyline/spread buttons carry an "_away" or "_home" suffix
-          teamName = dataGroup.includes('_away') ? awayTeam : homeTeam;
-        } else if (betType === 'over' || betType === 'under') {
-          teamName = `Total ${dataValue.split(' ')[1]}`; // e.g. "Total 5.5"
-        } else {
+          teamName = thisRow
+            .querySelector('.font-medium')
+            .textContent
+            .trim();
+        }
+        // 4) If it's over/under, you might want a “Total X” label instead:
+        else if (betType === 'over' || betType === 'under') {
+          const parts = dataValue.split(' ');
+          teamName = `${betType === 'over' ? 'Over' : 'Under'} ${parts[1]}`; 
+        }
+        // 5) Otherwise fallback to Game#
+        else {
           teamName = `Game ${gameId}`;
         }
-  
-        // the full matchup
+    
+        // 6) Full away @ home for the mini-line below
         const matchup = `${awayTeam} @ ${homeTeam}`;
   
         // Extract specific bet details
@@ -550,7 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('success-message').classList.add('hidden');
     document.getElementById('error-message').classList.add('hidden');
   
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyMtVtJoxsGVAFxOMsS2jYkS9gaoBI_sGe0q8rOMeU0yFsi5TU-HitaxZxtN-70KpGqww/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxHpL3GVYqmV7O4lqsDEbsFVtl5GfqgbsKfwNf5rpdl_bBf2uo75Jgs9rTFiPNmzVNu5w/exec';
     
     fetch(scriptURL, {
       method: 'POST',
