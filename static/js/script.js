@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          gameStatus.includes('P3') || 
                          gameStatus.includes('FINAL');
       
-      if (hasStarted) {
+      if (!hasStarted) {
         // Game has not started yet, enable buttons
         setupGameButtons(container, gameId);
       } else {
