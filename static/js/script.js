@@ -1,52 +1,35 @@
 document.addEventListener('DOMContentLoaded', function() {
-  
+  // Store selected bets and their odds
   const selectedBets = [];
   
+  // Initialize the UI
   initializeBettingUI();
   
+  /**
+   * Initialize the betting UI and set up event listeners
+   */
   function initializeBettingUI() {
-    
+    // Find all game containers (each game is in a div with class "mb-8 p-4 border rounded-lg shadow")
     const gameContainers = document.querySelectorAll('.mb-8.p-4.border.rounded-lg.shadow');
     
     gameContainers.forEach((container, index) => {
-      const gameId = index + 1;
+      const gameId = index + 1; // Use the index+1 as game ID
       
+      // Find the game status element (div with class "mb-2 p-1 bg-gray-100 text-center rounded")
       const statusElement = container.querySelector('.mb-2.p-1.bg-gray-100.text-center.rounded span');
       const gameStatus = statusElement ? statusElement.textContent.trim() : '';
-            
-      const awayTeamElement = container.querySelector('.flex.flex-col.sm\\:grid.sm\\:grid-cols-12.sm\\:items-center.mb-2 .font-medium.text-base.sm\\:text-lg');
-      const homeTeamElement = container.querySelector('.flex.flex-col.sm\\:grid.sm\\:grid-cols-12.sm\\:items-center.mt-2 .font-medium.text-base.sm\\:text-lg');
       
-      const awayTeam = awayTeamElement ? awayTeamElement.textContent.trim() : '';
-      const homeTeam = homeTeamElement ? homeTeamElement.textContent.trim() : '';     
-      
-      if (awayTeam && homeTeam) {
-        
-        const matchupElements = container.querySelectorAll('.truncate');
-        matchupElements.forEach(element => {
-          
-          const isAwayRow = element.closest('.flex.flex-col.sm\\:grid.sm\\:grid-cols-12.sm\\:items-center.mb-2');
-          const isHomeRow = element.closest('.flex.flex-col.sm\\:grid.sm\\:grid-cols-12.sm\\:items-center.mt-2');
-          
-          if (isAwayRow) {
-            element.querySelector('.font-medium.text-base.sm\\:text-lg').textContent = awayTeam;
-          } else if (isHomeRow) {
-            element.querySelector('.font-medium.text-base.sm\\:text-lg').textContent = homeTeam;
-          }
-        });
-      }
-      
-    
+      // Check if the game has started or finished (P1, P2, P3, FINAL)
       const hasStarted = gameStatus.includes('P1') || 
                          gameStatus.includes('P2') || 
                          gameStatus.includes('P3') || 
                          gameStatus.includes('FINAL');
       
-      if (!hasStarted) {
-        
-        setupGameButtons(container, gameId, awayTeam, homeTeam);
+      if (hasStarted) {
+        // Game has not started yet, enable buttons
+        setupGameButtons(container, gameId);
       } else {
-      
+        // Game has started or finished, disable buttons
         const buttons = container.querySelectorAll('button[type="button"]');
         buttons.forEach(button => {
           button.disabled = true;
@@ -57,61 +40,84 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  function setupGameButtons(container, gameId, awayTeam, homeTeam) {
-    
+  /**
+   * Set up event listeners for buttons in games that have started
+   */
+  function setupGameButtons(container, gameId) {
+    // 1. grab all the buttons in this game
     const buttons = container.querySelectorAll('button[type="button"]');
-    
+  
+    // 2. grab your two team‐row divs
+    const teamRows = container.querySelectorAll('.team-row');
+    let awayTeam = '', homeTeam = '';
+  
+    if (teamRows.length >= 2) {
+      awayTeam = teamRows[0]
+        .querySelector('.font-medium')
+        .textContent.trim();
+      homeTeam = teamRows[1]
+        .querySelector('.font-medium')
+        .textContent.trim();
+    }
+  
+    // 3. wire up each button
     buttons.forEach(button => {
       button.addEventListener('click', function() {
-        
         const dataGroup = button.dataset.group || '';
         const dataValue = button.dataset.value || '';
-        
+  
+        // determine betType
         let betType = '';
-        if (dataGroup.includes('moneyline')) {
-          betType = 'moneyline';
-        } else if (dataGroup.includes('total_over')) {
-          betType = 'over';
-        } else if (dataGroup.includes('total_under')) {
-          betType = 'under';
-        } else if (dataGroup.includes('spread')) {
-          betType = 'spread';
+        if (dataGroup.endsWith('_moneyline'))       betType = 'moneyline';
+        else if (dataGroup.endsWith('_total_over'))  betType = 'over';
+        else if (dataGroup.endsWith('_total_under')) betType = 'under';
+        else if (dataGroup.includes('_spread_'))     betType = 'spread';
+  
+        // choose the correct teamName
+        let teamName;
+        if (betType === 'moneyline' || betType === 'spread') {
+          // moneyline/spread buttons carry an "_away" or "_home" suffix
+          teamName = dataGroup.includes('_away') ? awayTeam : homeTeam;
+        } else if (betType === 'over' || betType === 'under') {
+          teamName = `Total ${dataValue.split(' ')[1]}`; // e.g. "Total 5.5"
+        } else {
+          teamName = `Game ${gameId}`;
         }
-        
-        const row = button.closest('.sm\\:grid.sm\\:grid-cols-12.sm\\:items-center');
-        const teamNameElement = row ? row.querySelector('.font-medium.text-base.sm\\:text-lg') : null;
-        const teamName = teamNameElement ? teamNameElement.textContent.trim() : `Game ${gameId}`;
-            
+  
+        // the full matchup
         const matchup = `${awayTeam} @ ${homeTeam}`;
-        
+  
+        // Extract specific bet details
         let betDescription = '';
         let displayName = teamName;
-             
-        let odds = "-110";
-                
+        
+        // Get the actual odds directly from the button text
+        let odds = "-110"; // Default odds
+        
+        // Extract odds from button text - fix for spread odds
         if (betType === 'spread') {
-          
+          // For spread bets, find the odds portion in parentheses
           const spreadOddsMatch = button.textContent.match(/\(([+-]\d+)\)/);
           if (spreadOddsMatch && spreadOddsMatch[1]) {
             odds = spreadOddsMatch[1];
           }
         } else if (betType === 'over' || betType === 'under') {
-          
+          // For total over/under, find the odds portion in parentheses
           const totalOddsMatch = button.textContent.match(/\(([+-]\d+)\)/);
           if (totalOddsMatch && totalOddsMatch[1]) {
             odds = totalOddsMatch[1];
           }
         } else if (betType === 'moneyline') {
-        
+          // For moneyline, the odds are usually the main text
           const moneylineOdds = button.textContent.trim().match(/([+-]\d+)/);
           if (moneylineOdds && moneylineOdds[1]) {
             odds = moneylineOdds[1];
           }
         }
         
-        
+        // Process bet details based on type
         if (betType === 'over' || betType === 'under') {
-          
+          // Extract the total value (e.g., "O 5.5" or "U 5.5")
           const totalMatch = dataValue.match(/[OU]\s*(\d+\.?\d*)/);
           const totalValue = totalMatch ? totalMatch[1] : '5.5';
           
@@ -123,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
             displayName = `Under ${totalValue}`;
           }
         } else if (betType === 'spread') {
-          
+          // Extract the spread value (e.g., "+1.5" or "-1.5")
           const spreadMatch = dataValue.match(/([+-]\d+\.?\d*)/);
           const spreadValue = spreadMatch ? spreadMatch[1] : '+1.5';
           
@@ -133,16 +139,16 @@ document.addEventListener('DOMContentLoaded', function() {
           betDescription = dataValue;
         }
         
-        
+        // Check if button is already selected
         const isSelected = button.dataset.selected === "true";
         
         if (isSelected) {
-          
+          // Deselect this button
           button.classList.remove('bg-green-500');
           button.classList.add('bg-blue-200');
           button.dataset.selected = "false";
           
-          
+          // Remove this bet from selectedBets
           const betIndex = selectedBets.findIndex(bet => 
             bet.gameId === gameId && bet.betType === betType && bet.value === dataValue
           );
@@ -151,34 +157,34 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedBets.splice(betIndex, 1);
           }
         } else {
+          // Handle mutual exclusivity rules
           
+          // Get all buttons in this game with the same group prefix
+          const groupPrefix = dataGroup.split('_')[0]; // e.g., "game1" from "game1_moneyline"
           
-          
-          const groupPrefix = dataGroup.split('_')[0];
-          
-          
+          // If selecting a moneyline, deselect any spread for this game
           if (betType === 'moneyline') {
             deselectButtonsByGroupPrefix(container, groupPrefix, 'spread');
           }
           
-          
+          // If selecting a spread, deselect any moneyline for this game
           if (betType === 'spread') {
             deselectButtonsByGroupPrefix(container, groupPrefix, 'moneyline');
-            
+            // Also deselect any other spread buttons for this game
             deselectButtonsByGroupPrefix(container, groupPrefix, 'spread');
           }
           
-          
+          // If selecting over, deselect any under for this game
           if (betType === 'over') {
             deselectButtonsByGroupPrefix(container, groupPrefix, 'under');
           }
           
-          
+          // If selecting under, deselect any over for this game
           if (betType === 'under') {
             deselectButtonsByGroupPrefix(container, groupPrefix, 'over');
           }
           
-          
+          // Deselect other buttons in the same group
           const sameGroupButtons = container.querySelectorAll(`[data-group="${dataGroup}"]`);
           sameGroupButtons.forEach(btn => {
             if (btn !== button) {
@@ -186,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
               btn.classList.add('bg-blue-200');
               btn.dataset.selected = "false";
               
-              
+              // Remove from selectedBets if it was selected
               const btnValue = btn.dataset.value;
               const betIndex = selectedBets.findIndex(bet => 
                 bet.gameId === gameId && bet.betType === betType && bet.value === btnValue
@@ -198,12 +204,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
           
-          
+          // Select this button
           button.classList.remove('bg-blue-200');
           button.classList.add('bg-green-500');
           button.dataset.selected = "true";
           
-          
+          // Add this bet to selectedBets
           selectedBets.push({
             gameId,
             betType,
@@ -219,13 +225,15 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }
         
-        
+        // Update the right panel
         updateRightPanel();
       });
     });
   }
   
-  
+  /**
+   * Get a readable label for the bet type
+   */
   function getBetTypeLabel(betType) {
     switch(betType) {
       case 'moneyline':
@@ -239,21 +247,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return betType.toUpperCase();
     }
   }
-
   
+  /**
+   * Deselect buttons by group prefix and type
+   */
   function deselectButtonsByGroupPrefix(container, groupPrefix, typeToDeselect) {
     const buttons = container.querySelectorAll('button[type="button"]');
     
     buttons.forEach(button => {
       const group = button.dataset.group || '';
-    
+      
+      // Check if this button belongs to the group prefix and contains the type to deselect
       if (group.startsWith(groupPrefix) && group.includes(typeToDeselect)) {
         if (button.dataset.selected === "true") {
           button.classList.remove('bg-green-500');
           button.classList.add('bg-blue-200');
           button.dataset.selected = "false";
           
-          
+          // Get the bet type based on the group
           let betType = '';
           if (group.includes('moneyline')) {
             betType = 'moneyline';
@@ -265,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
             betType = 'spread';
           }
           
-          
+          // Remove from selectedBets
           const dataValue = button.dataset.value;
           const betIndex = selectedBets.findIndex(bet => 
             bet.gameId === parseInt(groupPrefix.replace('game', '')) && 
@@ -281,7 +292,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  
+  /**
+   * Update the right panel with selected bets - FanDuel style with left alignment
+   */
   function updateRightPanel() {
     const selectionsContainer = document.getElementById('selections-container');
     
@@ -292,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    
+    // Create the betslip header
     let html = `
       <div class="flex items-center mb-4">
         <div class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2">
@@ -302,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     
-    
+    // Add each selected bet in FanDuel style with left alignment
     selectedBets.forEach(bet => {
       const oddsText = formatOdds(bet.odds);
       
@@ -325,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
     });
     
-    
+    // Add parlay odds if there are multiple bets
     if (selectedBets.length > 1) {
       const parlayOdds = calculateParlayOdds(selectedBets);
       html += `
@@ -337,8 +350,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     }
-
     
+    // Add bet amount input and potential winnings in FanDuel style - side by side
     html += `
       <div class="mt-4 grid grid-cols-2 gap-3">
         <div class="bg-gray-800 rounded-lg p-3">
@@ -359,12 +372,12 @@ document.addEventListener('DOMContentLoaded', function() {
         Place Bet
       </button>
       
-      
+      <!-- Success message (hidden by default) -->
       <div id="success-message" class="mt-3 p-3 bg-green-700 text-white rounded-lg hidden">
         Bet successfully placed! Your bet information has been recorded.
       </div>
       
-      
+      <!-- Error message (hidden by default) -->
       <div id="error-message" class="mt-3 p-3 bg-red-700 text-white rounded-lg hidden">
         There was an error placing your bet. Please try again.
       </div>
@@ -372,27 +385,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     selectionsContainer.innerHTML = html;
     
-    
+    // Re-attach event listener to the new bet amount input
     const betAmountInput = document.getElementById('bet-amount');
     if (betAmountInput) {
       betAmountInput.addEventListener('input', calculatePotentialWinnings);
-      calculatePotentialWinnings(); 
+      calculatePotentialWinnings(); // Calculate initial winnings
     }
     
-    
+    // Attach event listener to the place bet button
     const placeBetButton = document.getElementById('place-bet-button');
     if (placeBetButton) {
       placeBetButton.addEventListener('click', submitBetToGoogleSheet);
     }
   }
   
-  
+  /**
+   * Calculate parlay odds for multiple bets
+   */
   function calculateParlayOdds(bets) {
     let decimalOdds = 1;
     
     bets.forEach(bet => {
-      
-      const americanOdds = parseInt(bet.odds) || -110; 
+      // Make sure we have valid odds
+      const americanOdds = parseInt(bet.odds) || -110; // Default to -110 if parsing fails
       let decimal;
       
       if (americanOdds > 0) {
@@ -404,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
       decimalOdds *= decimal;
     });
     
-    
+    // Convert back to American odds
     let americanOdds;
     if (decimalOdds >= 2) {
       americanOdds = Math.round((decimalOdds - 1) * 100);
@@ -415,7 +430,9 @@ document.addEventListener('DOMContentLoaded', function() {
     return americanOdds.toString();
   }
   
-  
+  /**
+   * Calculate potential winnings based on bet amount and selected bets
+   */
   function calculatePotentialWinnings() {
     if (selectedBets.length === 0) return;
     
@@ -429,9 +446,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
       if (selectedBets.length === 1) {
-        
+        // Single bet
         const bet = selectedBets[0];
-        const americanOdds = parseInt(bet.odds) || -110;
+        const americanOdds = parseInt(bet.odds) || -110; // Default to -110 if parsing fails
         
         if (americanOdds > 0) {
           winnings = betAmount * (americanOdds / 100);
@@ -439,9 +456,9 @@ document.addEventListener('DOMContentLoaded', function() {
           winnings = betAmount * (100 / Math.abs(americanOdds));
         }
       } else if (selectedBets.length > 1) {
-        
+        // Parlay bet
         const parlayOdds = calculateParlayOdds(selectedBets);
-        const americanOdds = parseInt(parlayOdds) || -110;
+        const americanOdds = parseInt(parlayOdds) || -110; // Default to -110 if parsing fails
         
         if (americanOdds > 0) {
           winnings = betAmount * (americanOdds / 100);
@@ -449,8 +466,8 @@ document.addEventListener('DOMContentLoaded', function() {
           winnings = betAmount * (100 / Math.abs(americanOdds));
         }
       }
-
       
+      // Check for invalid results
       if (isNaN(winnings) || !isFinite(winnings)) {
         potentialWinningsElement.textContent = "$0.00";
       } else {
@@ -461,44 +478,48 @@ document.addEventListener('DOMContentLoaded', function() {
       potentialWinningsElement.textContent = "$0.00";
     }
   }
-
   
+  /**
+   * Format odds for display
+   */
   function formatOdds(odds) {
     try {
       const numOdds = parseInt(odds);
       if (isNaN(numOdds) || !isFinite(numOdds)) {
-        return "-110";
+        return "-110"; // Default value if parsing fails
       }
       return numOdds > 0 ? `+${numOdds}` : numOdds.toString();
     } catch (error) {
-      return "-110";
+      return "-110"; // Default value if any error occurs
     }
   }
-
   
+  /**
+   * Submit bet information to Google Sheets
+   */
   function submitBetToGoogleSheet() {
     if (selectedBets.length === 0) {
       alert("Please select at least one bet before submitting");
       return;
     }
-    
+  
     const betAmountInput = document.getElementById('bet-amount');
     const potentialWinningsElement = document.getElementById('potential-winnings');
-    
+  
     if (!betAmountInput || !potentialWinningsElement) return;
-    
+  
     const betAmount = parseFloat(betAmountInput.value) || 0;
     const potentialWinnings = potentialWinningsElement.textContent.replace('$', '');
-    
+  
     const betType = selectedBets.length > 1 ? 'Parlay' : 'Single';
-    
+  
     let odds;
     if (selectedBets.length === 1) {
       odds = formatOdds(selectedBets[0].odds);
     } else {
       odds = formatOdds(calculateParlayOdds(selectedBets));
     }
-    
+  
     const betDetails = selectedBets.map(bet => {
       return {
         matchup: `${bet.awayTeam} @ ${bet.homeTeam}`,
@@ -508,52 +529,49 @@ document.addEventListener('DOMContentLoaded', function() {
         odds: formatOdds(bet.odds)
       };
     });
-    
-    const formData = new FormData();
-    formData.append('date', new Date().toISOString());
-    formData.append('betType', betType);
-    formData.append('numberOfLegs', selectedBets.length);
-    formData.append('wagerAmount', betAmount.toFixed(2));
-    formData.append('potentialWinnings', potentialWinnings);
-    formData.append('totalOdds', odds);
-    formData.append('betDetails', JSON.stringify(betDetails));
-    
+  
+    const formData = {
+      date: new Date().toISOString(),
+      betType: betType,
+      numberOfLegs: selectedBets.length,
+      wagerAmount: betAmount.toFixed(2),
+      potentialWinnings: potentialWinnings,
+      totalOdds: odds,
+      betDetails: JSON.stringify(betDetails)
+    };
+  
     const placeBetButton = document.getElementById('place-bet-button');
     if (placeBetButton) {
       placeBetButton.disabled = true;
       placeBetButton.textContent = 'Placing Bet...';
       placeBetButton.classList.add('opacity-75');
     }
-    
+  
     document.getElementById('success-message').classList.add('hidden');
     document.getElementById('error-message').classList.add('hidden');
-    
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbx3NjdIw6A907c582_RXZSsZdhS4tIJKTqDNkbNBFGlmgV3Nc5J3VHZdPJeYds-B1fa/exec';
   
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxHpL3GVYqmV7O4lqsDEbsFVtl5GfqgbsKfwNf5rpdl_bBf2uo75Jgs9rTFiPNmzVNu5w/exec';
+    
     fetch(scriptURL, {
       method: 'POST',
-      body: formData
+      mode: 'no-cors', // 👈 Needed to bypass CORS restrictions
+      body: JSON.stringify(formData)
     })
-    .then(response => {
-      console.log('Success:', response);
-      
+    .then(() => {
       if (placeBetButton) {
         placeBetButton.disabled = false;
         placeBetButton.textContent = 'Place Bet';
         placeBetButton.classList.remove('opacity-75');
       }
-      
       document.getElementById('success-message').classList.remove('hidden');
     })
-    .catch(error => {
-      console.error('Error:', error);
-      
+    .catch(() => {
       if (placeBetButton) {
         placeBetButton.disabled = false;
         placeBetButton.textContent = 'Place Bet';
         placeBetButton.classList.remove('opacity-75');
       }
-    
       document.getElementById('error-message').classList.remove('hidden');
     });
   }
+});
