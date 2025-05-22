@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="static/css/styles.css">
 </head>
-<body class="bg-gray-100 flex flex-col md:flex-row min-h-screen pb-32 md:pb-0">
+<body class="bg-gray-100 flex flex-col md:flex-row min-h-screen pb-40 md:pb-0">
 
   <!-- Main Content-->
   <div class="w-full md:w-2/3 overflow-y-auto md:h-screen p-4 md:p-8 relative z-20 bg-white md:shadow-lg">
@@ -222,19 +222,19 @@
 
     <!-- Fixed Bottom Betslip (Mobile) / Right Panel Betslip (Desktop) -->
     <div class="fixed md:static bottom-0 left-0 right-0 md:w-1/3 md:h-screen bg-black text-white z-50 md:z-10 border-t md:border-t-0 border-gray-700 md:flex md:flex-col md:justify-start md:items-center md:text-center md:font-bold md:p-4 md:overflow-y-auto">
-      <div id="right-panel-content" class="w-full px-4 py-3 md:max-w-md md:mx-auto">
-        <div class="flex md:block items-center justify-between mb-2 md:mb-4">
+      <div id="right-panel-content" class="w-full px-4 py-4 md:py-3 md:max-w-md md:mx-auto">
+        <div class="flex md:block items-center justify-between mb-3 md:mb-4">
           <h2 class="text-lg md:text-xl font-bold">Betslip</h2>
           <span class="text-sm md:hidden text-gray-400" id="selections-count">0 selections</span>
         </div>
         
-        <div id="selections-container" class="max-h-32 md:max-h-none md:space-y-3 overflow-y-auto">
+        <div id="selections-container" class="max-h-40 md:max-h-none md:space-y-3 overflow-y-auto">
           <div class="selection hidden" id="selection-template">
-            <div class="w-full p-2 md:p-4 bg-gray-800 rounded md:rounded-lg mb-2 text-left relative">
+            <div class="w-full p-3 md:p-4 bg-gray-800 rounded md:rounded-lg mb-2 text-left relative">
               <div class="flex md:block justify-between items-center md:items-start">
                 <div class="flex-1 md:flex-none min-w-0 md:min-w-full">
                   <div class="text-sm md:text-xl font-bold selection-name truncate md:no-truncate"></div>
-                  <div class="text-xs md:text-sm text-gray-400 selection-type"></div>
+                  <div class="text-xs md:text-sm text-gray-400 selection-type mt-1"></div>
                   <div class="text-xs md:text-sm text-gray-400 selection-matchup truncate md:no-truncate"></div>
                 </div>
                 <div class="text-sm md:text-xl font-bold selection-odds ml-2 md:ml-0 md:absolute md:top-4 md:right-12"></div>
@@ -246,22 +246,22 @@
               </div>
             </div>
           </div>
-          <p class="text-sm text-gray-400 empty-message text-center py-2">Make selections from the games to see them here</p>
+          <p class="text-sm text-gray-400 empty-message text-center py-3 md:py-2">Make selections from the games to see them here</p>
         </div>
         
         <!-- Bet Amount and Place Bet Section -->
-        <div class="mt-3 pt-3 border-t border-gray-700" id="bet-controls" style="display: none;">
-          <div class="flex items-center justify-between mb-2">
+        <div class="mt-4 md:mt-3 pt-4 md:pt-3 border-t border-gray-700" id="bet-controls" style="display: none;">
+          <div class="flex items-center justify-between mb-3 md:mb-2">
             <div class="flex-1">
               <label class="text-xs text-gray-400 block">Wager</label>
-              <input type="number" class="bg-gray-800 text-white px-2 py-1 rounded text-sm w-20" placeholder="$" id="wager-input">
+              <input type="number" class="bg-gray-800 text-white px-3 py-2 md:px-2 md:py-1 rounded text-sm w-24 md:w-20 mt-1" placeholder="$" id="wager-input">
             </div>
             <div class="flex-1 text-right">
               <label class="text-xs text-gray-400 block">To Win</label>
-              <div class="text-sm font-bold text-green-400" id="potential-win">$0.00</div>
+              <div class="text-sm font-bold text-green-400 mt-1" id="potential-win">$0.00</div>
             </div>
           </div>
-          <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-bold text-sm">
+          <button class="w-full bg-green-600 hover:bg-green-700 text-white py-3 md:py-2 rounded font-bold text-sm">
             Place Bet
           </button>
         </div>
