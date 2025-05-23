@@ -1,6 +1,1 @@
-/* Chrome, Safari, Opera */
-::-webkit-scrollbar { display: none; }
-/* Firefox */
-html { scrollbar-width: none; }
-/* IE 10+ */
-html { -ms-overflow-style: none; }
+
