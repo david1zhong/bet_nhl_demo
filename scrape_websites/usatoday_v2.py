@@ -36,19 +36,13 @@ def scrape_nhl_odds():
         if status_element:
             status_text = status_element.text.strip()
             if 'Live P' in status_text:
-                # Remove the "Live " prefix and split into parts (if there are spaces)
                 period_parts = status_text.replace('Live ', '').split(' ')
                 if len(period_parts) > 0:
-                    # Remove any accidental "See" text
                     s = period_parts[0].replace("See", "")
-                    # If the string is longer than 5 characters, assume the last five characters are the time.
                     if len(s) > 5:
-                        # Everything before the final five characters is the period (e.g., "P1")
                         game_data['current_period'] = s[:-5]
-                        # The final five characters represent the time (e.g., "13:10")
                         game_data['time_remaining'] = s[-5:]
                     else:
-                        # Fallback if the string is too short (this path is less likely to be used).
                         period_part = s.split(':')[0]
                         game_data['current_period'] = period_part
                         if ':' in s:
