@@ -47,28 +47,20 @@ def scrape_nhl_odds():
                     game_data['away_score'] = away_score.text.strip()
                     game_data['home_score'] = home_score.text.strip()
 
-        # First check for status in the urWQNR class element (most common location)
         status_element = container.select_one('p[class*="__urWQNR"]')
         if status_element:
             status_text = status_element.text.strip()
 
-            # Handle "End P_" format
             if status_text.startswith('End P'):
                 game_data['current_period'] = status_text.split('See')[0].strip()
             elif 'Live P' in status_text:
-                # Remove the "Live " prefix and split into parts (if there are spaces)
                 period_parts = status_text.replace('Live ', '').split(' ')
                 if len(period_parts) > 0:
-                    # Remove any accidental "See" text
                     s = period_parts[0].replace("See", "")
-                    # If the string is longer than 5 characters, assume the last five characters are the time.
                     if len(s) > 5:
-                        # Everything before the final five characters is the period (e.g., "P1")
                         game_data['current_period'] = s[:-5]
-                        # The final five characters represent the time (e.g., "13:10")
                         game_data['time_remaining'] = s[-5:]
                     else:
-                        # Fallback if the string is too short (this path is less likely to be used).
                         period_part = s.split(':')[0]
                         game_data['current_period'] = period_part
                         if ':' in s:
@@ -83,7 +75,6 @@ def scrape_nhl_odds():
                 else:
                     game_data['current_period'] = 'FINAL'
 
-        # If we still don't have a current_period, search all strings in the container
         if 'current_period' not in game_data:
             status_texts = [elem.strip() for elem in container.find_all(string=True) if elem.strip()]
             for text in status_texts:
@@ -115,7 +106,6 @@ def scrape_nhl_odds():
                     game_data['time_remaining'] = time_part
                     break
 
-        # One more place to check for game status
         status_p_element = container.select_one('p[class*="__9aFieZX"]')
         if status_p_element and 'current_period' not in game_data:
             status_text = status_p_element.text.strip()
@@ -128,7 +118,6 @@ def scrape_nhl_odds():
                 time_part = ''.join(c for c in time_part if c.isdigit() or c == ':')
                 game_data['time_remaining'] = time_part
 
-        # Also check table headers for game status
         table_header = container.select_one('th a div div p[class*="__urWQNR"]')
         if table_header and 'current_period' not in game_data:
             status_text = table_header.text.strip()
@@ -238,28 +227,22 @@ def scrape_nhl_odds():
 
     return parsed_games
 
-# Helper function to get team logo URL
 def get_team_logo(team_name):
-    # First check if the full team name is in the dictionary
     if team_name in team_logos:
         return team_logos[team_name]
     
-    # Try to find the team name by matching parts
     for key in team_logos:
         if key in team_name:
             return team_logos[key]
     
-    # Look for abbreviations
     for abbr, name in team_abbreviations.items():
         if abbr in team_name or team_name in name:
             return team_logos.get(name, "")
     
-    # Extract the first word from the team name
     first_word = team_name.split()[0]
     if first_word in team_logos:
         return team_logos[first_word]
     
-    # Check for special cases
     if "Blues" in team_name:
         return team_logos.get("St. Louis", "")
     elif "Kraken" in team_name:
@@ -283,39 +266,32 @@ def get_team_logo(team_name):
     elif "Capitals" in team_name:
         return team_logos.get("Washington", "")
     
-    # Return a default logo or empty string if no match is found
     return ""
 
-# Format game data for display
 def format_game_data(game):
     formatted_data = {}
     
-    # Basic game info
     if 'away_team' in game and 'home_team' in game:
         away_team = game['away_team']
         home_team = game['home_team']
         formatted_data['matchup'] = f"{away_team} @ {home_team}"
         
-        # Add team logos
         formatted_data['away_logo'] = get_team_logo(away_team)
         formatted_data['home_logo'] = get_team_logo(home_team)
         formatted_data['away_team'] = away_team
         formatted_data['home_team'] = home_team
     
-    # Status information
     if 'current_period' in game:
         status = game['current_period']
         if 'time_remaining' in game:
             status += f" {game['time_remaining']}"
         formatted_data['status'] = status
     
-    # Score information
     if 'away_score' in game and 'home_score' in game:
         formatted_data['score'] = f"{game['away_score']} - {game['home_score']}"
         formatted_data['away_score'] = game['away_score']
         formatted_data['home_score'] = game['home_score']
     
-    # Betting information
     if 'away_moneyline' in game:
         formatted_data['away_ml'] = game['away_moneyline']
         if game.get('away_moneyline_winner', False):
@@ -326,7 +302,6 @@ def format_game_data(game):
         if game.get('home_moneyline_winner', False):
             formatted_data['home_ml_winner'] = True
     
-    # Spread information
     if 'away_spread' in game:
         spread = game['away_spread']
         if 'away_spread_odds' in game:
@@ -343,7 +318,6 @@ def format_game_data(game):
         if game.get('home_spread_winner', False):
             formatted_data['home_spread_winner'] = True
     
-    # Over/Under information
     if 'over_value' in game:
         over = f"O {game['over_value']}"
         if 'over_odds' in game:
@@ -362,13 +336,11 @@ def format_game_data(game):
         if game.get('under_winner', False):
             formatted_data['under_winner'] = True
     
-    # Team records
     if 'away_record' in game:
         formatted_data['away_record'] = game['away_record']
     if 'home_record' in game:
         formatted_data['home_record'] = game['home_record']
     
-    # Add prediction based on moneyline winner if available
     if game.get('away_moneyline_winner', False):
         formatted_data['prediction'] = game['away_team']
     elif game.get('home_moneyline_winner', False):
