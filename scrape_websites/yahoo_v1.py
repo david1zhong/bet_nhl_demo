@@ -106,41 +106,31 @@ def printBetInfo():
 
     print("\n\n\n\n\n\n")
 
-    # Pair live scores and live times with teams
     for i, team in enumerate(teams_lst):
-        start = i * 5  # 5 odds per team
+        start = i * 5
         end = start + 5
 
-        # Calculate the live info index (each game has 2 teams, so live time is shared)
-        live_info_index = i // 2  # Integer division to group teams into games
+        live_info_index = i // 2
 
-        # Get live time (shared for both teams in a game)
         live_time = livetime_lst[live_info_index] if live_info_index < len(livetime_lst) else "N/A"
 
-        # Get live score (unique for each team)
         live_score = livescore_lst[i] if i < len(livescore_lst) else "N/A"
 
-        # Print team info
         print(f"{team} {live_score} {live_time}")
 
-        # Check if there are any odds left for this team
         if start < len(odds_lst):
-            # Get the available odds for this team
             team_odds = odds_lst[start:end] if end <= len(odds_lst) else odds_lst[start:]
 
-            # Map the odds to their respective fields
             money_line = team_odds[0] if len(team_odds) > 0 else "N/A"
             point_spread = team_odds[1] if len(team_odds) > 1 else "N/A"
             point_spread_odds = team_odds[2] if len(team_odds) > 2 else "N/A"
             total_points = team_odds[3] if len(team_odds) > 3 else "N/A"
             total_points_odds = team_odds[4] if len(team_odds) > 4 else "N/A"
 
-            # Print the odds
             print(f"- Money Line: ({money_line})")
             print(f"- Point Spread: {point_spread} ({point_spread_odds})")
             print(f"- Total Points: {total_points} ({total_points_odds})")
         else:
-            # Handle cases where there are no odds at all for this team
             print("- Money Line: N/A")
             print("- Point Spread: N/A")
             print("- Total Points: N/A")
