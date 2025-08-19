@@ -59,12 +59,10 @@ def get_games():
     score_index = 0
 
     for i in range(0, len(teams_lst) - 1, 2):
-        # Determine if the game is completed
         status = period_time_list[i // 2] if i // 2 < len(period_time_list) else (
             finals_lst[final_index] if final_index < len(finals_lst) else "N/A")
         is_completed = "See Game Summary" in status
 
-        # Assign the score only if the game is completed
         if is_completed:
             score = scores_lst[score_index] if score_index < len(scores_lst) else "N/A"
             score_index += 1
