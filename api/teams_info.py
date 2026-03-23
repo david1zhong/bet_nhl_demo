@@ -26,7 +26,7 @@ team_logos = {
     "Blues": "https://s.yimg.com/cv/apiv2/default/nhl/20210312/500x500/st-louis-blues.png",
     "Lightning": "https://s.yimg.com/cv/apiv2/default/20231010/500x500/lightning_wbg.png",
     "Maple Leafs": "https://s.yimg.com/cv/apiv2/default/20181126/nhl/500x500/mapleleafs_wbg.png",
-    "Hockey Club": "https://s.yimg.com/cv/apiv2/default/20240610/500px/utah_wbg.png",
+    "Mammoth": "https://s.yimg.com/it/api/res/1.2/aZLy89DOe7QwcPy2Ph5H5w--~A/YXBwaWQ9eW5ld3M7dz0xMjAwO2g9NjMwO3E9MTAw/https://s.yimg.com/cv/apiv2/default/20250507/500px/UtahMammoth_wbg.png",
     "Canucks": "https://s.yimg.com/cv/apiv2/default/20190924/nhl/500x500/canucks.png",
     "Golden Knights": "https://s.yimg.com/cv/apiv2/default/nhl/20210312/500x500/vegas-golden-knights.png",
     "Capitals": "https://s.yimg.com/cv/apiv2/default/nhl/20210325/500x500/washington-capitals_wbg.png",
