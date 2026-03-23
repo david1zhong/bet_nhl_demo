@@ -62,7 +62,7 @@ team_abbreviations = {
     "STL": "Blues",
     "TB": "Lightning",
     "TOR": "Maple Leafs",
-    "UTA": "Hockey Club",
+    "UTA": "Mammoth",
     "VAN": "Canucks",
     "VGK": "Golden Knights",
     "WAS": "Capitals",
